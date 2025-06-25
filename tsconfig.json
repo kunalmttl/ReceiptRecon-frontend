@@ -6,7 +6,8 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "isolatedModules": false
   },
   "include": [
     "**/*.ts",
