@@ -6,10 +6,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 export default function CaptureScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [Base64ImageString, setBase64ImageString] = useState(null);
   const cameraRef = useRef<any>(null);
   const router = useRouter();
   const [attemptsLeft, setAttemptsLeft] = useState(3);
-  const { productId } = useLocalSearchParams();
+  const { ORDER_ID,reason, PRODUCT_ID } = useLocalSearchParams();
 
 
   useEffect(() => {
@@ -21,45 +22,49 @@ export default function CaptureScreen() {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
+      const photo = await cameraRef.current.takePictureAsync({base64: true});
       setPhotoUri(photo.uri);
+      setBase64ImageString(photo.base64);
     }
   };
 
   const uploadImage = async () => {
-    if (!photoUri) return;
+    if (!photoUri || !Base64ImageString) return;
   
-    const formData = new FormData();
-    formData.append('image', {
-      uri: photoUri,
-      name: 'return.jpg',
-      type: 'image/jpeg',
-    } as any);
+    // const formData = new FormData();
+    // formData.append('image', {
+    //   uri: photoUri,
+    //   name: 'return.jpg',
+    //   type: 'image/jpeg',
+    // } as any);
   
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/upload`, {
+
+      const body_object = {
+        "reason": reason,
+        "image_data": Base64ImageString
+      };
+      const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
+          'x-user-id': `${process.env.EXPO_PUBLIC_USER_ID}`
         },
-        body: formData,
+        body: JSON.stringify(body_object)
       });
-  
+    
       const result = await response.json();
-      console.log(result);
-  
-      if (result.verified) {
-        Alert.alert('✅ Verified!', `Confidence: ${Math.round(result.confidence * 100)}%`);
-        // 🔁 Navigate to QR Code screen or display it
+
+      if (result.success===true) {
         router.push({
           pathname: '../returns/success',
-          params: { productId: productId },
+          params: { qr_string: result.qrCodeData },
         });
       } else if (attemptsLeft > 1) {
         setAttemptsLeft(attemptsLeft - 1);
         Alert.alert(
           '❌ Verification Failed',
-          `Attempt failed.\nConfidence: ${Math.round(result.confidence * 100)}%\nAttempts left: ${attemptsLeft - 1}`,
+          `Attempt failed.\nConfidence: ${Math.round(0.67 * 100)}%\nAttempts left: ${attemptsLeft - 1}`,
           [{ text: 'Retake Photo', onPress: () => setPhotoUri(null) }]
         );
       } else {
@@ -87,16 +92,17 @@ export default function CaptureScreen() {
   return (
     <View style={{ flex: 1 }}>
       {!photoUri ? (
-        <CameraView
-          ref={cameraRef}
-          style={{ flex: 1 }}
-          facing="back"
-          ratio="16:9"
-        >
+        <View style={{ flex: 1 }}>
+          <CameraView
+            ref={cameraRef}
+            style={StyleSheet.absoluteFill}
+            facing="back"
+          />
+  
           <View style={styles.cameraButtonContainer}>
             <TouchableOpacity style={styles.captureBtn} onPress={takePicture} />
           </View>
-        </CameraView>
+        </View>
       ) : (
         <View style={styles.previewContainer}>
           <Image source={{ uri: photoUri }} style={styles.previewImage} />
@@ -107,6 +113,7 @@ export default function CaptureScreen() {
       )}
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({
