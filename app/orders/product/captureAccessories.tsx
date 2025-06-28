@@ -1,15 +1,28 @@
 // app/orders/product/captureAccessories.tsx
 import React, { useRef, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, Button, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Button,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { Camera, CameraView } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useReturnImagesStore } from "@/store/returnImageStore";
+
 
 export default function CaptureAccessoriesScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const cameraRef = useRef<any>(null);
+  const [WITH_ACCESSORIES_IMAGE, setWITH_ACCESSORIES_IMAGE] =
+    useState<string>("");
   const router = useRouter();
-  const { reason, orderId, itemId, tagPhotoUri, rotationUris } = useLocalSearchParams();
+  const { reason, ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI } = useLocalSearchParams();
+  const { setphotoURI, photoURI,accessoryPhotos,setAccessoryPhotos } = useReturnImagesStore();
 
   useEffect(() => {
     (async () => {
@@ -20,56 +33,16 @@ export default function CaptureAccessoriesScreen() {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
+      const photo = await cameraRef.current.takePictureAsync({ base64: true });
       setPhotoUri(photo.uri);
-    }
-  };
-
-  const uploadAll = async () => {
-    if (!photoUri) return;
-
-    const formData = new FormData();
-    formData.append("reason", reason as string);
-    formData.append("tagImage", {
-      uri: tagPhotoUri as string,
-      name: "tag.jpg",
-      type: "image/jpeg",
-    } as any);
-
-    JSON.parse(rotationUris as string).forEach((uri: string, idx: number) => {
-      formData.append(`rotation${idx + 1}`, {
-        uri,
-        name: `rotation${idx + 1}.jpg`,
-        type: "image/jpeg",
-      } as any);
-    });
-
-    formData.append("accessoriesImage", {
-      uri: photoUri,
-      name: "accessories.jpg",
-      type: "image/jpeg",
-    } as any);
-
-    try {
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${orderId}/items/${itemId}/return`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "multipart/form-data", "x-user-id": `${process.env.EXPO_PUBLIC_USER_ID}` },
-          body: formData,
-        }
-      );
-      const resJson = await response.json();
-      Alert.alert("Upload Complete", "Your return request has been submitted.");
-      router.replace("/orders");
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Upload Error", "Please try again.");
+      setWITH_ACCESSORIES_IMAGE(photo.base64);
     }
   };
 
   if (hasPermission === null) {
-    return <Text style={styles.centeredText}>Requesting camera permission...</Text>;
+    return (
+      <Text style={styles.centeredText}>Requesting camera permission...</Text>
+    );
   }
 
   if (hasPermission === false) {
@@ -85,13 +58,31 @@ export default function CaptureAccessoriesScreen() {
       )}
       {!photoUri ? (
         <View style={styles.captureContainer}>
-          <Text style={styles.instructions}>Take a photo of the product with all accessories.</Text>
-          <TouchableOpacity style={styles.captureButton} onPress={takePicture} />
+          <Text style={styles.instructions}>
+            Take a photo of the product with all accessories.
+          </Text>
+          <TouchableOpacity
+            style={styles.captureButton}
+            onPress={takePicture}
+          />
         </View>
       ) : (
         <View style={styles.buttons}>
           <Button title="Retake" onPress={() => setPhotoUri(null)} />
-          <Button title="Upload All" onPress={uploadAll} />
+          <Button
+            title="Continue"
+            onPress={() => {
+              setphotoURI([...photoURI,photoUri]);
+              setAccessoryPhotos([WITH_ACCESSORIES_IMAGE]);
+              router.push({
+                pathname: "/orders/product/confirmPage",
+                params: {
+                  ORDER_ID,
+                  PRODUCT_ID,
+                },
+              });
+            }}
+          />
         </View>
       )}
     </View>

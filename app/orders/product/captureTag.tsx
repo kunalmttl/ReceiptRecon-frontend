@@ -1,23 +1,21 @@
 import React, { useRef, useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Camera, CameraView } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
+import { useReturnImagesStore } from "@/store/returnImageStore";
 
 export default function CaptureTagScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const cameraRef = useRef<any>(null);
   const router = useRouter();
-  const { reason, orderId, itemId } = useLocalSearchParams();
+  const [local_image_base64, setlocal_image_base64] = useState("")
+  const { reason, ORDER_ID, PRODUCT_ID } = useLocalSearchParams();
   const navigation = useNavigation();
+  const { setTagPhoto, setphotoURI } = useReturnImagesStore();
+
 
   useEffect(() => {
     navigation.setOptions({
@@ -28,8 +26,22 @@ export default function CaptureTagScreen() {
       headerTintColor: "#fff", // Make title and icons white
     });
   }, []);
-  
-  
+
+  const handleContinue = () => {
+    if(!photoUri){
+      console.log("No photoUri found.");
+      return;
+    }
+    setphotoURI([photoUri])
+    setTagPhoto([local_image_base64]);
+    router.push({
+      pathname: "/orders/product/capture360",
+      params: {
+        ORDER_ID,
+        PRODUCT_ID,
+      },
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -40,13 +52,16 @@ export default function CaptureTagScreen() {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
+      const photo = await cameraRef.current.takePictureAsync({ base64: true });
       setPhotoUri(photo.uri);
+      setlocal_image_base64(photo.base64);
     }
   };
 
   if (hasPermission === null) {
-    return <Text style={styles.centeredText}>Requesting camera permission...</Text>;
+    return (
+      <Text style={styles.centeredText}>Requesting camera permission...</Text>
+    );
   }
 
   if (hasPermission === false) {
@@ -69,7 +84,10 @@ export default function CaptureTagScreen() {
 
           {/* Capture button */}
           <View style={styles.captureContainer}>
-            <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
+            <TouchableOpacity
+              style={styles.captureButton}
+              onPress={takePicture}
+            >
               <Ionicons name="camera" size={28} color="#0071ce" />
             </TouchableOpacity>
             <Text style={styles.instructions}>Tap to capture</Text>
@@ -93,17 +111,7 @@ export default function CaptureTagScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.continueButton}
-              onPress={() =>
-                router.push({
-                  pathname: "./capture360",
-                  params: {
-                    reason,
-                    orderId,
-                    itemId,
-                    tagPhotoUri: photoUri,
-                  },
-                })
-              }
+              onPress={handleContinue}
             >
               <Ionicons name="arrow-forward" size={20} color="#fff" />
               <Text style={styles.continueButtonText}>Continue</Text>

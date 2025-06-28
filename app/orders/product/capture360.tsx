@@ -13,8 +13,9 @@ import * as VideoThumbnails from "expo-video-thumbnails";
 import base64 from "base-64";
 import utf8 from "utf8";
 import { readAsStringAsync } from "expo-file-system";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useReturnImagesStore } from "@/store/returnImageStore";
 import { useNavigation } from "expo-router";
 
 export default function VideoRecorder() {
@@ -25,9 +26,13 @@ export default function VideoRecorder() {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [base64Array, setBase64Array] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
+  const { ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI, reason } = useLocalSearchParams();
   const navigation = useNavigation();
+  const { setPhotos360,photos360, setphotoURI, photoURI } = useReturnImagesStore();
+
 
   useEffect(() => {
+    // console.log("hi");
     navigation.setOptions({
       title: "Capture image with tag",
       headerStyle: {
@@ -36,7 +41,6 @@ export default function VideoRecorder() {
       headerTintColor: "#fff", // Make title and icons white
     });
   }, []);
-
 
   async function getVideoThumbnailAsBase64(imageUri: string) {
     try {
@@ -54,12 +58,14 @@ export default function VideoRecorder() {
     if (!videoUri) return;
     const intervals = [2000, 4000, 6000, 8000];
     const generated: string[] = [];
-    
+
     setGenerating(true); // Start loading
-  
+
     try {
       for (const time of intervals) {
-        const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, { time });
+        const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+          time,
+        });
         generated.push(uri);
         const base64_gen_string = await getVideoThumbnailAsBase64(uri);
         if (!base64_gen_string) {
@@ -67,9 +73,12 @@ export default function VideoRecorder() {
           setGenerating(false); // Stop loading on error
           return;
         }
-        base64Array.push(base64_gen_string);
+        // console.log(base64_gen_string);
+        setPhotos360([...photos360,base64_gen_string]);
+        // setBase64Array((prev) => [...prev, base64_gen_string]);
       }
       setThumbnails(generated);
+      setphotoURI([...photoURI,...generated]);
       Alert.alert("✅ Thumbnails generated!");
     } catch (e) {
       console.warn("Thumbnail generation failed:", e);
@@ -77,17 +86,15 @@ export default function VideoRecorder() {
       setGenerating(false); // Always stop loading
     }
   };
-  
 
   const startRecording = async () => {
     if (cameraRef.current && !recording) {
       setRecording(true);
       try {
         const video = await cameraRef.current.recordAsync();
-        if(!video){
+        if (!video) {
           console.log("No video found");
           return;
-          
         }
         setVideoUri(video.uri);
         setRecording(false);
@@ -125,8 +132,8 @@ export default function VideoRecorder() {
 
           <View style={styles.overlay}>
             <Text style={styles.instructionText}>
-              🎥 Rotate the item slowly in front of the camera.{"\n"}
-              ⏳ Record a video about 8–10 seconds long.
+              🎥 Rotate the item slowly in front of the camera.{"\n"}⏳ Record a
+              video about 8–10 seconds long.
             </Text>
           </View>
 
@@ -174,10 +181,15 @@ export default function VideoRecorder() {
 
           <TouchableOpacity
             style={styles.submitBtn}
-            onPress={() =>
+            onPress={() =>{
+              setPhotos360(base64Array)
               router.push({
                 pathname: "/orders/product/captureAccessories",
-              })
+                params: {
+                  ORDER_ID,
+                  PRODUCT_ID,
+                },
+              })}
             }
           >
             <Ionicons name="checkmark" size={18} color="#fff" />
@@ -227,14 +239,14 @@ const styles = StyleSheet.create({
   previewContainer: {
     padding: 20,
     alignItems: "center",
-    backgroundColor: "black"
+    backgroundColor: "black",
   },
   heading: {
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 10,
     textAlign: "center",
-    color: "white"
+    color: "white",
   },
   thumbnail: {
     width: 100,
@@ -271,7 +283,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     marginLeft: 6,
-  },loaderContainer: {
+  },
+  loaderContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -281,5 +294,4 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
-  
 });

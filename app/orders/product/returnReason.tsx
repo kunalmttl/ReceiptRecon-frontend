@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,22 +7,24 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useReturnImagesStore } from "@/store/returnImageStore";
 
 const predefinedReasons = [
-  'Wrong size',
-  'Damaged item',
-  'Received different item',
-  'No longer needed',
-  'Not up to the mark'
+  "Wrong size",
+  "Damaged item",
+  "Received different item",
+  "No longer needed",
+  "Not up to the mark",
 ];
 
 export default function ReturnReasonScreen() {
   const router = useRouter();
   const { item, ORDER_ID } = useLocalSearchParams();
-  const [selectedReason, setSelectedReason] = useState<string>('');
-  const [customReason, setCustomReason] = useState('');
+  const [selectedReason, setSelectedReason] = useState<string>("");
+  const [customReason, setCustomReason] = useState("");
+  const { setreason } = useReturnImagesStore();
 
   let parsedItem: any;
   try {
@@ -38,22 +40,24 @@ export default function ReturnReasonScreen() {
   const handleContinue = () => {
     const reason = customReason.trim();
     if (!reason) {
-      Alert.alert('Please enter a valid reason for return.');
+      Alert.alert("Please enter a valid reason for return.");
       return;
     }
-
+    setreason(selectedReason);
     router.push({
-      pathname: './captureTag',
+      pathname: "./captureTag",
       params: {
-        reason,
         ORDER_ID,
-        PRODUCT_ID: parsedItem._id
+        PRODUCT_ID: parsedItem._id,
       },
     });
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.title}>Select a reason for return</Text>
 
       {predefinedReasons.map((reason) => (
@@ -99,71 +103,71 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 60,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     flexGrow: 1,
   },
   centered: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 20,
-    color: '#333',
+    color: "#333",
   },
   option: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     padding: 14,
     borderRadius: 10,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 2,
     elevation: 2,
   },
   optionSelected: {
-    borderColor: '#0071ce',
-    backgroundColor: '#e6f0fa',
+    borderColor: "#0071ce",
+    backgroundColor: "#e6f0fa",
   },
   optionText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   optionTextSelected: {
-    color: '#0071ce',
-    fontWeight: '600',
+    color: "#0071ce",
+    fontWeight: "600",
   },
   label: {
     marginTop: 24,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
-    color: '#333',
+    color: "#333",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 10,
     padding: 14,
     minHeight: 100,
-    backgroundColor: '#fff',
-    textAlignVertical: 'top',
+    backgroundColor: "#fff",
+    textAlignVertical: "top",
   },
   continueButton: {
-    backgroundColor: '#0071ce',
+    backgroundColor: "#0071ce",
     paddingVertical: 14,
     borderRadius: 10,
     marginTop: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   continueButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
