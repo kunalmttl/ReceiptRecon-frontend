@@ -13,6 +13,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { getQRString } from "@/store/asyncStore";
+import QRCode from "react-native-qrcode-svg";
 
 const exampleImages = [
   {
@@ -34,6 +36,22 @@ export default function ProductPage() {
   const navigation = useNavigation();
   const [productItem, setProductItem] = useState<any>(null);
   const router = useRouter();
+  const [qr_string, setqr_string] = useState("");
+
+  const get_qr_if_exist = async () => {
+    const qr = await getQRString(JSON.parse(item as string)._id);
+    // console.log("qr: ", qr);
+    if (!qr) {
+      console.log("qr exists but is null.");
+      return;
+    }
+    setqr_string(qr);
+  };
+
+  useEffect(() => {
+    get_qr_if_exist();
+    // console.log(item);
+  }, []);
 
   useEffect(() => {
     if (!item) return;
@@ -111,7 +129,7 @@ export default function ProductPage() {
         </Text>
       </View>
 
-      {returnStatus === "NONE" && isWithinReturnWindow && (
+      {returnStatus === "NONE" && isWithinReturnWindow && qr_string === "" && (
         <>
           <View style={{ marginTop: 24 }}>
             <Text style={{ fontWeight: "600", marginBottom: 8 }}>
@@ -185,6 +203,17 @@ export default function ProductPage() {
           </View>
         </>
       )}
+      {qr_string !== "" && (
+        <View style={styles.qrContainer}>
+          <Text style={styles.qrHeading}>🎫 Your Return QR Code</Text>
+          <View style={styles.qrWrapper}>
+            <QRCode value={qr_string as string} size={220} />
+          </View>
+          <Text style={styles.qrInstruction}>
+            Show this QR at the returns desk to complete your return.
+          </Text>
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -231,5 +260,39 @@ const styles = StyleSheet.create({
   },
   returnBtn: {
     marginTop: 20,
+  },
+  qrContainer: {
+    alignItems: "center",
+    marginVertical: 32,
+    padding: 20,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  qrHeading: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 16,
+    color: "#333",
+  },
+  qrWrapper: {
+    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  qrInstruction: {
+    marginTop: 16,
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
   },
 });

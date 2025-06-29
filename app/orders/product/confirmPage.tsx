@@ -1,29 +1,29 @@
-import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  ScrollView,
+} from "react-native";
 import React from "react";
-import { useLocalSearchParams,useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
 import * as FileSystem from "expo-file-system";
 
-
 const ConfirmPage = () => {
-  const {
-    ORDER_ID,
-    PRODUCT_ID
-  } = useLocalSearchParams();
+  const { ORDER_ID, PRODUCT_ID } = useLocalSearchParams();
 
-  const { photoURI,reason,tagPhoto,accessoryPhotos,photos360 } = useReturnImagesStore();
+  const { photoURI, reason, tagPhoto, accessoryPhotos, photos360 } =
+    useReturnImagesStore();
   const router = useRouter();
 
   const writeToFile = async () => {
     try {
       const fileUri = FileSystem.documentDirectory + "trial.txt";
-  
-      // Your data to write
       const data = tagPhoto[0];
-  
-      // Write to the file
       await FileSystem.writeAsStringAsync(fileUri, data);
-  
       console.log("File written successfully:", fileUri);
     } catch (error) {
       console.error("Error writing file:", error);
@@ -33,58 +33,68 @@ const ConfirmPage = () => {
   const handleSubmit = async () => {
     // await writeToFile();
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": `${process.env.EXPO_PUBLIC_USER_ID}`
-        },
-        body: JSON.stringify({
-          reason,               
-          orderId: ORDER_ID,    
-          productId: PRODUCT_ID, 
-          base64_images_encoding: [tagPhoto,accessoryPhotos,photos360] 
-        }),
-      });
-  
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": `${process.env.EXPO_PUBLIC_USER_ID}`,
+          },
+          body: JSON.stringify({
+            reason,
+            orderId: ORDER_ID,
+            productId: PRODUCT_ID,
+            base64_images_encoding: [tagPhoto, accessoryPhotos, photos360],
+          }),
+        }
+      );
+
       const data = await response.json();
-      if(data.success===true){
+      if (data.success === true) {
         router.push({
-            pathname: "/orders/returns/success",
-            params:{
-                qr_string: data.qrCodeData
-            }
-        })
+          pathname: "/orders/returns/success",
+          params: {
+            qr_string: data.qrCodeData,
+            ORDER_ID,
+            PRODUCT_ID
+          },
+        });
       }
     } catch (error) {
       console.error("Error submitting return:", error);
     }
   };
-  
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Confirm Page</Text>
+    <View style={styles.container}>
+      <Text style={styles.heading}>✅ Review and Submit</Text>
+
+      <ScrollView
+        contentContainerStyle={styles.imagesContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {photoURI && photoURI.length > 0 ? (
+          photoURI.map((uri, index) => (
+            <Image
+              key={index}
+              source={{ uri }}
+              style={styles.image}
+            />
+          ))
+        ) : (
+          <Text style={styles.placeholderText}>No photos captured.</Text>
+        )}
+      </ScrollView>
 
       <TouchableOpacity
-        style={styles.button}
+        style={styles.submitBtn}
         onPress={handleSubmit}
       >
-        <Text style={styles.buttonText}>Submit</Text>
+        <Ionicons name="checkmark" size={20} color="#fff" />
+        <Text style={styles.submitBtnText}>Submit Return Request</Text>
       </TouchableOpacity>
-
-      {photoURI && photoURI.length > 0 ? (
-        photoURI.map((uri, index) => (
-          <Image
-            key={index}
-            source={{ uri: uri }}
-            style={styles.image}
-          />
-        ))
-      ) : (
-        <Text style={styles.placeholderText}>No photos captured.</Text>
-      )}
-    </ScrollView>
+    </View>
   );
 };
 
@@ -92,33 +102,46 @@ export default ConfirmPage;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    alignItems: "center",
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 20,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: "#0071ce",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 6,
+  heading: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+    textAlign: "center",
     marginBottom: 16,
   },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
+  imagesContainer: {
+    alignItems: "center",
+    paddingBottom: 20,
   },
   image: {
-    width: 200,
-    height: 200,
+    width: "100%",
+    height: 250,
+    borderRadius: 12,
     marginVertical: 8,
-    borderRadius: 8,
   },
   placeholderText: {
-    marginTop: 20,
     color: "#888",
+    fontSize: 16,
+    marginTop: 20,
+    textAlign: "center",
+  },
+  submitBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#0071ce",
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginTop: "auto",
+  },
+  submitBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
   },
 });

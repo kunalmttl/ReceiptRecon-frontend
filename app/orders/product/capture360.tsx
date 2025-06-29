@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { CameraView } from "expo-camera";
 import * as VideoThumbnails from "expo-video-thumbnails";
@@ -28,17 +29,15 @@ export default function VideoRecorder() {
   const [generating, setGenerating] = useState(false);
   const { ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI, reason } = useLocalSearchParams();
   const navigation = useNavigation();
-  const { setPhotos360,photos360, setphotoURI, photoURI } = useReturnImagesStore();
-
+  const { setPhotos360, photos360, setphotoURI, photoURI } = useReturnImagesStore();
 
   useEffect(() => {
-    // console.log("hi");
     navigation.setOptions({
-      title: "Capture image with tag",
+      title: "Take a video",
       headerStyle: {
-        backgroundColor: "#0071ce", // Blue background
+        backgroundColor: "#0071ce",
       },
-      headerTintColor: "#fff", // Make title and icons white
+      headerTintColor: "#fff",
     });
   }, []);
 
@@ -59,7 +58,7 @@ export default function VideoRecorder() {
     const intervals = [2000, 4000, 6000, 8000];
     const generated: string[] = [];
 
-    setGenerating(true); // Start loading
+    setGenerating(true); // Start loader
 
     try {
       for (const time of intervals) {
@@ -70,20 +69,18 @@ export default function VideoRecorder() {
         const base64_gen_string = await getVideoThumbnailAsBase64(uri);
         if (!base64_gen_string) {
           console.log("Error in generating image from:", uri);
-          setGenerating(false); // Stop loading on error
+          setGenerating(false);
           return;
         }
-        // console.log(base64_gen_string);
-        setPhotos360([...photos360,base64_gen_string]);
-        // setBase64Array((prev) => [...prev, base64_gen_string]);
+        setPhotos360([...photos360, base64_gen_string]);
       }
       setThumbnails(generated);
-      setphotoURI([...photoURI,...generated]);
+      setphotoURI([...photoURI, ...generated]);
       Alert.alert("✅ Thumbnails generated!");
     } catch (e) {
       console.warn("Thumbnail generation failed:", e);
     } finally {
-      setGenerating(false); // Always stop loading
+      setGenerating(false); // Always stop loader
     }
   };
 
@@ -119,7 +116,7 @@ export default function VideoRecorder() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View style={{ flex: 1, backgroundColor: videoUri ? "#fff" : "#fff" }}>
       {!videoUri ? (
         <>
           <CameraView
@@ -129,14 +126,12 @@ export default function VideoRecorder() {
             mode="video"
             mute
           />
-
           <View style={styles.overlay}>
             <Text style={styles.instructionText}>
               🎥 Rotate the item slowly in front of the camera.{"\n"}⏳ Record a
               video about 8–10 seconds long.
             </Text>
           </View>
-
           <View style={styles.captureContainer}>
             <TouchableOpacity
               onPress={recording ? stopRecording : startRecording}
@@ -158,12 +153,12 @@ export default function VideoRecorder() {
         </>
       ) : generating ? (
         <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="blue" />
           <Text style={styles.loaderText}>Generating thumbnails...</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.previewContainer}>
           <Text style={styles.heading}>🎞️ Review Video Thumbnails</Text>
-
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -173,24 +168,22 @@ export default function VideoRecorder() {
               <Image key={index} source={{ uri }} style={styles.thumbnail} />
             ))}
           </ScrollView>
-
           <TouchableOpacity style={styles.againBtn} onPress={resetSession}>
             <Ionicons name="refresh" size={18} color="#0071ce" />
             <Text style={styles.againBtnText}>Retake Video</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.submitBtn}
-            onPress={() =>{
-              setPhotos360(base64Array)
+            onPress={() => {
+              setPhotos360(base64Array);
               router.push({
                 pathname: "/orders/product/captureAccessories",
                 params: {
                   ORDER_ID,
                   PRODUCT_ID,
                 },
-              })}
-            }
+              });
+            }}
           >
             <Ionicons name="checkmark" size={18} color="#fff" />
             <Text style={styles.submitBtnText}>Submit</Text>
@@ -239,14 +232,14 @@ const styles = StyleSheet.create({
   previewContainer: {
     padding: 20,
     alignItems: "center",
-    backgroundColor: "black",
+    backgroundColor: "white",
   },
   heading: {
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 10,
     textAlign: "center",
-    color: "white",
+    color: "black",
   },
   thumbnail: {
     width: 100,
@@ -288,10 +281,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: "#fff",
   },
   loaderText: {
-    color: "#fff",
+    color: "blue",
     fontSize: 16,
+    marginTop: 10,
   },
 });

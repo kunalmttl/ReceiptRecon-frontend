@@ -68,7 +68,6 @@ const deals = [
       "https://i5.walmartimages.com/seo/NutriBullet-Pro-900W-Personal-Blender-9-Piece-Set_2b441d75-4aa2-41e3-9e0f-0f0dd1e4dc91.4464c2c807f0e93a0b14b176d2d92470.jpeg",
   },
 ];
-
 export default function Home() {
   const navigation = useNavigation();
 
