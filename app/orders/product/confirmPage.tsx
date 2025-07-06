@@ -6,29 +6,28 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
-import * as FileSystem from "expo-file-system";
+import { useNavigation } from "expo-router";
 
 const ConfirmPage = () => {
   const { ORDER_ID, PRODUCT_ID } = useLocalSearchParams();
-
+  const navigation = useNavigation();
   const { photoURI, reason, tagPhoto, accessoryPhotos, photos360 } =
     useReturnImagesStore();
   const router = useRouter();
 
-  const writeToFile = async () => {
-    try {
-      const fileUri = FileSystem.documentDirectory + "trial.txt";
-      const data = tagPhoto[0];
-      await FileSystem.writeAsStringAsync(fileUri, data);
-      console.log("File written successfully:", fileUri);
-    } catch (error) {
-      console.error("Error writing file:", error);
-    }
-  };
+  useEffect(() => {
+    navigation.setOptions({
+      title: "Confirm",
+      headerStyle: {
+        backgroundColor: "#0071ce", // Blue background
+      },
+      headerTintColor: "#fff", // Make title and icons white
+    });
+  }, []);
 
   const handleSubmit = async () => {
     // await writeToFile();
@@ -49,6 +48,8 @@ const ConfirmPage = () => {
           }),
         }
       );
+      // [[tagPhoto],[photos360],[accessoryPhotos]] : [[1 element],[4 element],[1 element]]
+
 
       const data = await response.json();
       if (data.success === true) {
@@ -57,7 +58,7 @@ const ConfirmPage = () => {
           params: {
             qr_string: data.qrCodeData,
             ORDER_ID,
-            PRODUCT_ID
+            PRODUCT_ID,
           },
         });
       }
@@ -76,24 +77,19 @@ const ConfirmPage = () => {
       >
         {photoURI && photoURI.length > 0 ? (
           photoURI.map((uri, index) => (
-            <Image
-              key={index}
-              source={{ uri }}
-              style={styles.image}
-            />
+            <Image key={index} source={{ uri }} style={styles.image} />
           ))
         ) : (
           <Text style={styles.placeholderText}>No photos captured.</Text>
         )}
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.submitBtn}
-        onPress={handleSubmit}
-      >
-        <Ionicons name="checkmark" size={20} color="#fff" />
-        <Text style={styles.submitBtnText}>Submit Return Request</Text>
-      </TouchableOpacity>
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+          <Ionicons name="checkmark" size={20} color="#fff" />
+          <Text style={styles.submitBtnText}>Submit Return Request</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -104,7 +100,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   heading: {
     fontSize: 20,
@@ -129,6 +126,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: "center",
   },
+  footer: {
+    paddingVertical: 14,
+  },
   submitBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -136,7 +136,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#0071ce",
     paddingVertical: 14,
     borderRadius: 8,
-    marginTop: "auto",
   },
   submitBtnText: {
     color: "#fff",

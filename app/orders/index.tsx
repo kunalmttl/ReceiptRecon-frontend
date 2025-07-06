@@ -68,6 +68,7 @@ export default function OrdersScreen() {
         <Text style={styles.headerText}>My Account</Text>
       </View>
       <FlatList
+        contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
         data={flattenedItems}
         keyExtractor={(item) => item._id}

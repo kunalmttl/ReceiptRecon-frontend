@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { saveQRString } from '@/store/asyncStore';
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import QRCode from "react-native-qrcode-svg";
+import { useRouter, useLocalSearchParams, Link } from "expo-router";
+import { saveQRString } from "@/store/asyncStore";
 
 export default function SuccessScreen() {
   const { qr_string, PRODUCT_ID } = useLocalSearchParams();
@@ -26,12 +26,11 @@ export default function SuccessScreen() {
 
       <Text style={styles.payload}>Payload: {qr_string}</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.push('/orders')}
-      >
-        <Text style={styles.buttonText}>Back to My Orders</Text>
-      </TouchableOpacity>
+      <Link href="/orders" replace asChild>
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Back to My Orders</Text>
+        </TouchableOpacity>
+      </Link>
     </View>
   );
 }
@@ -40,28 +39,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#f8f9fa",
+    justifyContent: "center",
+    alignItems: "center",
   },
   heading: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 8,
-    color: '#2e7d32',
+    color: "#2e7d32",
   },
   subtext: {
     fontSize: 15,
-    color: '#555',
-    textAlign: 'center',
+    color: "#555",
+    textAlign: "center",
     marginBottom: 24,
   },
   qrWrapper: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -69,20 +68,20 @@ const styles = StyleSheet.create({
   },
   payload: {
     fontSize: 12,
-    color: '#777',
-    textAlign: 'center',
+    color: "#777",
+    textAlign: "center",
     marginBottom: 32,
     paddingHorizontal: 12,
   },
   button: {
-    backgroundColor: '#0071ce',
+    backgroundColor: "#0071ce",
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
