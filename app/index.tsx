@@ -28,32 +28,32 @@ const categories = [
 
 const deals = [
   {
-    title: "IPhone 15",
+    title: "Samsung A73",
     image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHKobaohRFVeFUIreijsApWQ7XJPLhxy6YkA&s",
+      "https://tinyurl.com/receiptrecon",
   },
   {
-    title: 'Samsung 65" Smart TV',
+    title: 'Nobero Oversized Fit TShirt',
     image:
-      "https://jamesandco.in/wp-content/uploads/2024/09/SAMSUNG-65Q60D-LED-TV-494410283-i-2-1200Wx1200H.jpeg",
+      "https://tinyurl.com/noberofit",
   },
   {
-    title: "Levis White Tshirt",
+    title: "LG Refrigerator",
     image:
       "data:image/jpeg;base64,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",
   },
   {
-    title: "LEGO Classic Bricks Box",
+    title: "BeYoung Forest green Tshirt",
     image:
       "https://i5.walmartimages.com/seo/LEGO-Classic-Large-Creative-Brick-Box-790-Pieces-For-Kids-4-99_c88ff6ee-c17e-443e-981d-6545d349e580.27dca85c71615bc13c8c32b38e7f0ba9.jpeg",
   },
   {
-    title: "HP Pavilion Laptop 15.6”",
+    title: "Adidas White Sneakers",
     image:
       "https://i5.walmartimages.com/seo/HP-15-6-Touch-Laptop-Intel-Core-i5-16GB-RAM-512GB-SSD-Windows-11_8b31fc12-bb0c-4da9-9a4f-9e8ed130aa25.6fa914b81c3b3aa198b0baf0d7310dc3.jpeg",
   },
   {
-    title: "Keurig K-Classic Coffee Maker",
+    title: "Yamaha Helmet",
     image:
       "https://i5.walmartimages.com/asr/2a5e0da5-7f68-4d3a-b9c5-c0d9704d979f.18f340e267fbb21ba3c346a875e8cf92.jpeg",
   },

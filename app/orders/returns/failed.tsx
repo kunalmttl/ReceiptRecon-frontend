@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "expo-router";
 import { router } from "expo-router";
 
-
 const Failed = () => {
   const navigation = useNavigation();
 
@@ -14,6 +13,7 @@ const Failed = () => {
         backgroundColor: "#0071ce",
       },
       headerTintColor: "#fff",
+      HeaderBackButton: false
     });
   }, []);
 

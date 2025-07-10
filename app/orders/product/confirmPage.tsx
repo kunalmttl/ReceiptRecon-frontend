@@ -27,8 +27,14 @@ const ConfirmPage = () => {
       },
       headerTintColor: "#fff", // Make title and icons white
     });
-    console.log([tagPhoto.length, accessoryPhotos.length, useReturnImagesStore.getState().four_photos.length]);
-    console.log(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`);
+    console.log([
+      tagPhoto.length,
+      accessoryPhotos.length,
+      useReturnImagesStore.getState().four_photos.length,
+    ]);
+    console.log(
+      `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`
+    );
   }, []);
 
   const handleSubmit = async () => {
@@ -51,12 +57,10 @@ const ConfirmPage = () => {
       );
       // [[tagPhoto],[photos360],[accessoryPhotos]] : [[1 element],[4 element],[1 element]]
 
-
       const data = await response.json();
       console.log(data);
       // console.log([tagPhoto.length, accessoryPhotos.length, useReturnImagesStore.getState().four_photos.length]);
-      
-      
+
       if (data.success === true) {
         router.push({
           pathname: "/orders/returns/success",
@@ -68,14 +72,16 @@ const ConfirmPage = () => {
         });
       } else {
         router.push({
-          pathname: "/orders/returns/failed"
-        })
+          pathname: "/orders/returns/failed",
+        });
       }
     } catch (error) {
       console.error("Error submitting return:", error);
-    }
-    finally {
+    } finally {
       useReturnImagesStore((state) => state.clearAll);
+      useReturnImagesStore.setState((state) => ({
+        four_photos: []
+      }));
     }
   };
 

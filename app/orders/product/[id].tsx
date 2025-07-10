@@ -50,12 +50,13 @@ export default function ProductPage() {
 
   useEffect(() => {
     get_qr_if_exist();
-    // console.log(item);
+    console.log(item);
   }, []);
 
   useEffect(() => {
     if (!item) return;
-
+    console.log(item);
+    
     try {
       const parsedItem = JSON.parse(item as string);
       // console.log(parsedItem);

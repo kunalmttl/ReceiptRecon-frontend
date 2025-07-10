@@ -62,7 +62,7 @@ export default function VideoRecorder() {
           return;
         }
         useReturnImagesStore.setState((state) => ({
-          four_photos: [...state.four_photos, base64_gen_string]
+          four_photos: [...state.four_photos.slice(-3), base64_gen_string]
         }));
       }
       // console.log("Photos360 length (getState):", useReturnImagesStore.getState().four_photos);
