@@ -2,12 +2,14 @@ import { create } from "zustand";
 
 interface ReturnImagesState {
   tagPhoto: string[];
-  photos360: string[];           // array of 5 base64 images
+  photos360: string[];           // array of 4 base64 images
+  four_photos: string[];           // array of 4 base64 images
   accessoryPhotos: string[];   
   reason: string;
   photoURI: string[];  // array of 6 base64 images
   setTagPhoto: (data: string[]) => void;
   setPhotos360: (data: string[]) => void;
+  setfour_photos: (data: string[]) => void;
   setAccessoryPhotos: (data: string[]) => void;
   setphotoURI: (data: string[]) => void;
   setreason: (data: string) => void;
@@ -17,11 +19,13 @@ interface ReturnImagesState {
 export const useReturnImagesStore = create<ReturnImagesState>((set) => ({
   tagPhoto: [],
   photos360: [],
+  four_photos:[],
   photoURI: [],
   reason: "",
   accessoryPhotos: [],
   setTagPhoto: (data) => set({ tagPhoto: data }),
   setPhotos360: (data) => set({ photos360: data }),
+  setfour_photos: (data) => set({ four_photos: data }),
   setAccessoryPhotos: (data) => set({ accessoryPhotos: data }),
   setphotoURI: (data) => set({photoURI: data}),
   setreason: (data) => set({reason: data}),
@@ -29,7 +33,9 @@ export const useReturnImagesStore = create<ReturnImagesState>((set) => ({
     set({
       tagPhoto: [],
       photos360: [],
+      four_photos: [],
       accessoryPhotos: [],
-      photoURI: []
+      photoURI: [],
+      reason: ""
     }),
 }));

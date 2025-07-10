@@ -15,7 +15,7 @@ import { useNavigation } from "expo-router";
 const ConfirmPage = () => {
   const { ORDER_ID, PRODUCT_ID } = useLocalSearchParams();
   const navigation = useNavigation();
-  const { photoURI, reason, tagPhoto, accessoryPhotos, photos360 } =
+  const { photoURI, reason, tagPhoto, accessoryPhotos, four_photos } =
     useReturnImagesStore();
   const router = useRouter();
 
@@ -27,11 +27,14 @@ const ConfirmPage = () => {
       },
       headerTintColor: "#fff", // Make title and icons white
     });
+    console.log([tagPhoto.length, accessoryPhotos.length, useReturnImagesStore.getState().four_photos.length]);
+    console.log(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`);
   }, []);
 
   const handleSubmit = async () => {
     // await writeToFile();
     try {
+      // console.log();
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`,
         {
@@ -42,9 +45,7 @@ const ConfirmPage = () => {
           },
           body: JSON.stringify({
             reason,
-            orderId: ORDER_ID,
-            productId: PRODUCT_ID,
-            base64_images_encoding: [tagPhoto, accessoryPhotos, photos360],
+            base64_images_encoding: [tagPhoto, four_photos, accessoryPhotos],
           }),
         }
       );
@@ -52,6 +53,10 @@ const ConfirmPage = () => {
 
 
       const data = await response.json();
+      console.log(data);
+      // console.log([tagPhoto.length, accessoryPhotos.length, useReturnImagesStore.getState().four_photos.length]);
+      
+      
       if (data.success === true) {
         router.push({
           pathname: "/orders/returns/success",
@@ -61,9 +66,16 @@ const ConfirmPage = () => {
             PRODUCT_ID,
           },
         });
+      } else {
+        router.push({
+          pathname: "/orders/returns/failed"
+        })
       }
     } catch (error) {
       console.error("Error submitting return:", error);
+    }
+    finally {
+      useReturnImagesStore((state) => state.clearAll);
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import { useRouter, useLocalSearchParams, Link } from "expo-router";
+import { useRouter, useLocalSearchParams, Link, router } from "expo-router";
 import { saveQRString } from "@/store/asyncStore";
 
 export default function SuccessScreen() {
@@ -12,6 +12,10 @@ export default function SuccessScreen() {
     saveQRString(qr_string as string, PRODUCT_ID as string);
     console.log("qr is ", qr_string);
   }, []);
+
+  const handleGoBack = () => {
+    router.dismissAll();
+  };
 
   return (
     <View style={styles.container}>
@@ -26,11 +30,9 @@ export default function SuccessScreen() {
 
       <Text style={styles.payload}>Payload: {qr_string}</Text>
 
-      <Link href="/orders" replace asChild>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleGoBack}>
           <Text style={styles.buttonText}>Back to My Orders</Text>
         </TouchableOpacity>
-      </Link>
     </View>
   );
 }

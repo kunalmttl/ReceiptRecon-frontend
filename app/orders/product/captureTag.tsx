@@ -4,6 +4,7 @@ import { Camera, CameraView } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
+import compressImage from "@/store/functions";
 import { useReturnImagesStore } from "@/store/returnImageStore";
 
 export default function CaptureTagScreen() {
@@ -52,9 +53,14 @@ export default function CaptureTagScreen() {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+      const photo = await cameraRef.current.takePictureAsync();
       setPhotoUri(photo.uri);
-      setlocal_image_base64(photo.base64);
+      const base64_string = await compressImage(photo.uri);
+      if(!base64_string){
+        console.error("No tagphoto base64 found.");
+        return;
+      }
+      setlocal_image_base64(base64_string);
     }
   };
 

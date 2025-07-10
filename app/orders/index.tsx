@@ -32,7 +32,9 @@ export default function OrdersScreen() {
       },
     })
       .then((res) => res.json())
-      .then((data) => {
+      .then((data) => {        
+        // console.log(data);
+        
         const items = data.flatMap((order: any) =>
           order.purchasedItems.map((item: any) => ({
             ...item,

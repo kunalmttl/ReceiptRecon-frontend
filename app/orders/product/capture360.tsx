@@ -11,13 +11,11 @@ import {
 } from "react-native";
 import { CameraView } from "expo-camera";
 import * as VideoThumbnails from "expo-video-thumbnails";
-import base64 from "base-64";
-import utf8 from "utf8";
-import { readAsStringAsync } from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
 import { useNavigation } from "expo-router";
+import compressImage from "@/store/functions";
 
 export default function VideoRecorder() {
   const router = useRouter();
@@ -41,39 +39,33 @@ export default function VideoRecorder() {
     });
   }, []);
 
-  async function getVideoThumbnailAsBase64(imageUri: string) {
-    try {
-      const fileContent = await readAsStringAsync(imageUri);
-      const bytes = utf8.encode(fileContent);
-      const base64String = base64.encode(bytes);
-      return base64String;
-    } catch (e) {
-      console.error("Error generating thumbnail:", e);
-      return null;
-    }
-  }
-
   const generateThumbnails = async (videoUri: string) => {
     if (!videoUri) return;
-    const intervals = [2000, 4000, 6000, 8000];
+    const intervals = [2000,4000,6000,8000];
     const generated: string[] = [];
 
     setGenerating(true); // Start loader
-
+    useReturnImagesStore.setState({
+      photos360: [],
+      photoURI: [],
+    });
     try {
       for (const time of intervals) {
         const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
           time,
         });
         generated.push(uri);
-        const base64_gen_string = await getVideoThumbnailAsBase64(uri);
+        const base64_gen_string = await compressImage(uri);
         if (!base64_gen_string) {
           console.log("Error in generating image from:", uri);
           setGenerating(false);
           return;
         }
-        setPhotos360([...photos360, base64_gen_string]);
+        useReturnImagesStore.setState((state) => ({
+          four_photos: [...state.four_photos, base64_gen_string]
+        }));
       }
+      // console.log("Photos360 length (getState):", useReturnImagesStore.getState().four_photos);
       setThumbnails(generated);
       setphotoURI([...photoURI, ...generated]);
       Alert.alert("✅ Thumbnails generated!");

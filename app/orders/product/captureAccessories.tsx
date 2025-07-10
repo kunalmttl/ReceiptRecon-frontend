@@ -11,6 +11,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
 import { useNavigation } from "expo-router";
+import compressImage from "@/store/functions";
 
 export default function CaptureAccessoriesScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -43,9 +44,14 @@ export default function CaptureAccessoriesScreen() {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+      const photo = await cameraRef.current.takePictureAsync();
       setPhotoUri(photo.uri);
-      setWITH_ACCESSORIES_IMAGE(photo.base64);
+      const base64_string = await compressImage(photo.uri);
+      if(!base64_string){
+        console.error("No tagphoto base64 found.");
+        return;
+      }
+      setWITH_ACCESSORIES_IMAGE(base64_string);
     }
   };
 
