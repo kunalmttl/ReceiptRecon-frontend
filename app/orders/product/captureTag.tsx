@@ -5,7 +5,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import compressImage from "@/store/functions";
+import * as FileSystem from 'expo-file-system';
 import { useReturnImagesStore } from "@/store/returnImageStore";
+import * as Sharing from 'expo-sharing';
+
 
 export default function CaptureTagScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -28,13 +31,25 @@ export default function CaptureTagScreen() {
     });
   }, []);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if(!photoUri){
       console.log("No photoUri found.");
       return;
     }
     setphotoURI([photoUri])
+    // const fileUri = FileSystem.documentDirectory + 'image_base64.txt';
+    // await FileSystem.writeAsStringAsync(fileUri, local_image_base64, {
+    //   encoding: FileSystem.EncodingType.UTF8,
+    // });
+    // console.log("Base64 written to:", fileUri);
+
     setTagPhoto([local_image_base64]);
+    
+    // if (await Sharing.isAvailableAsync()) {
+    //   await Sharing.shareAsync(fileUri);
+    // } else {
+    //   alert("Sharing is not available on this device");
+    // }
     router.push({
       pathname: "/orders/product/capture360",
       params: {

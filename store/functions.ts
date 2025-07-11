@@ -24,9 +24,10 @@ export default async function compressImage(imagURI: string){
         const compressed = await ImageManipulator.manipulateAsync(imagURI, [], {
             compress: 0.5,
             format: ImageManipulator.SaveFormat.JPEG,
+            base64: true
         });
-        const base64 = await getVideoThumbnailAsBase64(compressed.uri);
-        return base64;
+        // console.log("Compressed base64 length:", compressed.base64!.length);
+        return compressed.base64;
     } catch (error) {   
         console.log(error);
         return;

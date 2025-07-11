@@ -50,7 +50,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     get_qr_if_exist();
-    console.log(item);
+    // console.log(item);
   }, []);
 
   useEffect(() => {
