@@ -11,6 +11,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
 import { useNavigation } from "expo-router";
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import compressImage from "@/store/functions";
 
 export default function CaptureAccessoriesScreen() {
@@ -21,7 +23,7 @@ export default function CaptureAccessoriesScreen() {
     useState<string>("");
   const router = useRouter();
   const navigation = useNavigation();
-  const { reason, ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI } = useLocalSearchParams();
+  const { reason, ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI, retried, retriedSteps } = useLocalSearchParams();
   const { setphotoURI, photoURI, accessoryPhotos, setAccessoryPhotos } =
     useReturnImagesStore();
 
@@ -51,6 +53,17 @@ export default function CaptureAccessoriesScreen() {
         console.error("No tagphoto base64 found.");
         return;
       }
+    //   const fileUri = FileSystem.documentDirectory + 'image_base64.txt';
+    // await FileSystem.writeAsStringAsync(fileUri, photo.uri, {
+    //   encoding: FileSystem.EncodingType.UTF8,
+    // });
+    // console.log("Base64 written to:", fileUri);
+    
+    // if (await Sharing.isAvailableAsync()) {
+    //   await Sharing.shareAsync(fileUri);
+    // } else {
+    //   alert("Sharing is not available on this device");
+    // }
       setWITH_ACCESSORIES_IMAGE(base64_string);
     }
   };

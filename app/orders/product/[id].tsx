@@ -55,7 +55,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!item) return;
-    console.log(item);
+    // console.log(item);
     
     try {
       const parsedItem = JSON.parse(item as string);

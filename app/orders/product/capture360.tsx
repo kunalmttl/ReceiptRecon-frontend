@@ -15,6 +15,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
 import { useNavigation } from "expo-router";
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import compressImage from "@/store/functions";
 
 export default function VideoRecorder() {
@@ -25,7 +27,7 @@ export default function VideoRecorder() {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [base64Array, setBase64Array] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
-  const { ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI, reason } = useLocalSearchParams();
+  const { ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI, reason, retried, retriedSteps } = useLocalSearchParams();
   const navigation = useNavigation();
   const { setPhotos360, photos360, setphotoURI, photoURI } = useReturnImagesStore();
 
@@ -61,6 +63,18 @@ export default function VideoRecorder() {
           setGenerating(false);
           return;
         }
+    //     const fileUri = FileSystem.documentDirectory + 'image_base64.txt';
+    // await FileSystem.writeAsStringAsync(fileUri, uri, {
+    //   encoding: FileSystem.EncodingType.UTF8,
+    // });
+    // console.log("photos 360: Base64 written to:", fileUri);
+
+    
+    // if (await Sharing.isAvailableAsync()) {
+    //   await Sharing.shareAsync(fileUri);
+    // } else {
+    //   alert("Sharing is not available on this device");
+    // }
         useReturnImagesStore.setState((state) => ({
           four_photos: [...state.four_photos.slice(-3), base64_gen_string]
         }));
@@ -106,6 +120,64 @@ export default function VideoRecorder() {
     setThumbnails([]);
     setRecording(false);
   };
+
+  const handleContinue = () => {
+    setPhotos360(base64Array);
+    if(retried==='false' || JSON.parse(retriedSteps as string).length === 0){
+      router.push({
+        pathname: "/orders/product/captureAccessories",
+        params: {
+          ORDER_ID,
+          PRODUCT_ID,
+          retried: 'false',
+          retriedSteps
+        },
+      });
+    } else {
+      if(JSON.parse(retriedSteps as string).length===1){
+        router.push({
+          pathname: "/orders/product/confirmPage",
+          params: {
+            ORDER_ID,
+            PRODUCT_ID,
+            retried: 'false',
+            retriedSteps
+          },
+        });
+      } else if(JSON.parse(retriedSteps as string).length===2) {
+        if (retriedSteps[1]==="contents_verification"){
+          router.push({
+            pathname: "/orders/product/captureAccessories",
+            params: {
+              ORDER_ID,
+              PRODUCT_ID,
+              retried: 'false',
+              retriedSteps
+            },
+          });
+        } else {
+          router.push({
+            pathname: "/orders/product/confirmPage",
+            params: {
+              ORDER_ID,
+              PRODUCT_ID,
+              retried: 'false', 
+              retriedSteps
+            },
+          });
+        }
+      } else {
+        router.push({
+          pathname: "/orders/product/captureAccessories",
+          params: {
+            ORDER_ID,
+            PRODUCT_ID,
+            retried: 'false', retriedSteps
+          },
+        });
+      }
+    }
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: videoUri ? "#fff" : "#fff" }}>
@@ -166,16 +238,7 @@ export default function VideoRecorder() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.submitBtn}
-            onPress={() => {
-              setPhotos360(base64Array);
-              router.push({
-                pathname: "/orders/product/captureAccessories",
-                params: {
-                  ORDER_ID,
-                  PRODUCT_ID,
-                },
-              });
-            }}
+            onPress={handleContinue}
           >
             <Ionicons name="checkmark" size={18} color="#fff" />
             <Text style={styles.submitBtnText}>Submit</Text>

@@ -49,6 +49,7 @@ export default function ReturnReasonScreen() {
       params: {
         ORDER_ID,
         PRODUCT_ID: parsedItem._id,
+        retried: 'false'
       },
     });
   };

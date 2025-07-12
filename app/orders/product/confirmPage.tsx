@@ -15,7 +15,7 @@ import { useNavigation } from "expo-router";
 const ConfirmPage = () => {
   const { ORDER_ID, PRODUCT_ID } = useLocalSearchParams();
   const navigation = useNavigation();
-  const { photoURI, reason, tagPhoto, accessoryPhotos, four_photos } =
+  const { photoURI, reason, tagPhoto, accessoryPhotos, four_photos, tries, settries } =
     useReturnImagesStore();
   const router = useRouter();
 
@@ -71,17 +71,14 @@ const ConfirmPage = () => {
           },
         });
       } else {
+        settries(tries+1);
         router.push({
           pathname: "/orders/returns/failed",
-        });
+          params: {object: JSON.stringify(data)}
+        })
       }
     } catch (error) {
       console.error("Error submitting return:", error);
-    } finally {
-      useReturnImagesStore((state) => state.clearAll);
-      useReturnImagesStore.setState((state) => ({
-        four_photos: []
-      }));
     }
   };
 

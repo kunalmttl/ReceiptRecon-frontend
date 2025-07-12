@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useRouter, useLocalSearchParams, Link, router } from "expo-router";
 import { saveQRString } from "@/store/asyncStore";
+import { useReturnImagesStore } from "@/store/returnImageStore";
 
 export default function SuccessScreen() {
   const { qr_string, PRODUCT_ID } = useLocalSearchParams();
@@ -14,6 +15,10 @@ export default function SuccessScreen() {
   }, []);
 
   const handleGoBack = () => {
+    useReturnImagesStore((state) => state.clearAll);
+      useReturnImagesStore.setState((state) => ({
+        four_photos: [],
+      }));
     router.dismissAll();
   };
 

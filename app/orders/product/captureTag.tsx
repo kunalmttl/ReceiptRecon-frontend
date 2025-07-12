@@ -16,12 +16,13 @@ export default function CaptureTagScreen() {
   const cameraRef = useRef<any>(null);
   const router = useRouter();
   const [local_image_base64, setlocal_image_base64] = useState("")
-  const { reason, ORDER_ID, PRODUCT_ID } = useLocalSearchParams();
+  const { reason, ORDER_ID, PRODUCT_ID, retried, retriedSteps } = useLocalSearchParams();
   const navigation = useNavigation();
   const { setTagPhoto, setphotoURI } = useReturnImagesStore();
 
 
   useEffect(() => {
+    console.log(retried, retriedSteps);
     navigation.setOptions({
       title: "Capture image with tag",
       headerStyle: {
@@ -50,13 +51,60 @@ export default function CaptureTagScreen() {
     // } else {
     //   alert("Sharing is not available on this device");
     // }
-    router.push({
-      pathname: "/orders/product/capture360",
-      params: {
-        ORDER_ID,
-        PRODUCT_ID,
-      },
-    });
+    if(retried=='false' || JSON.parse(retriedSteps as string).length===0){
+      router.push({
+        pathname: "/orders/product/capture360",
+        params: {
+          ORDER_ID,
+          PRODUCT_ID,
+          retried: 'false'
+        },
+      });
+    } else {
+      if( JSON.parse(retriedSteps as string).length === 1){
+        router.push({
+          pathname: "/orders/product/confirmPage",
+          params: {
+            ORDER_ID,
+            PRODUCT_ID,
+            retried: 'true',
+            retriedSteps
+          },
+        });
+      } else if(JSON.parse(retriedSteps as string).length === 2){
+        if(retriedSteps[1] === "condition_verification"){
+          router.push({
+            pathname: "/orders/product/capture360",
+            params: {
+              ORDER_ID,
+              PRODUCT_ID,
+              retried: 'true',
+              retriedSteps
+            },
+          });
+        } else {
+          router.push({
+            pathname: "/orders/product/captureAccessories",
+            params: {
+              ORDER_ID,
+              PRODUCT_ID,
+              retried: 'true',
+              retriedSteps
+            },
+          });
+        }
+      } else {
+        router.push({
+          pathname: "/orders/product/capture360",
+          params: {
+            ORDER_ID,
+            PRODUCT_ID,
+            retried: 'true',
+            retriedSteps
+          },
+        });
+      }
+    }
   };
 
   useEffect(() => {
