@@ -5,8 +5,10 @@ import {
   View,
   Image,
   ScrollView,
+  ActivityIndicator,
+  Modal,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
@@ -15,18 +17,26 @@ import { useNavigation } from "expo-router";
 const ConfirmPage = () => {
   const { ORDER_ID, PRODUCT_ID } = useLocalSearchParams();
   const navigation = useNavigation();
-  const { photoURI, reason, tagPhoto, accessoryPhotos, four_photos, tries, settries } =
-    useReturnImagesStore();
+  const {
+    photoURI,
+    reason,
+    tagPhoto,
+    accessoryPhotos,
+    four_photos,
+    tries,
+    settries,
+  } = useReturnImagesStore();
   const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
       title: "Confirm",
-      headerStyle: {
-        backgroundColor: "#0071ce", // Blue background
-      },
-      headerTintColor: "#fff", // Make title and icons white
+      headerStyle: { backgroundColor: "#0071ce" },
+      headerTintColor: "#fff",
     });
+
     console.log([
       tagPhoto.length,
       accessoryPhotos.length,
@@ -38,9 +48,8 @@ const ConfirmPage = () => {
   }, []);
 
   const handleSubmit = async () => {
-    // await writeToFile();
+    setLoading(true);
     try {
-      // console.log();
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/orders/${ORDER_ID}/items/${PRODUCT_ID}/return`,
         {
@@ -55,11 +64,9 @@ const ConfirmPage = () => {
           }),
         }
       );
-      // [[tagPhoto],[photos360],[accessoryPhotos]] : [[1 element],[4 element],[1 element]]
 
       const data = await response.json();
       console.log(data);
-      // console.log([tagPhoto.length, accessoryPhotos.length, useReturnImagesStore.getState().four_photos.length]);
 
       if (data.success === true) {
         router.push({
@@ -71,14 +78,15 @@ const ConfirmPage = () => {
           },
         });
       } else {
-        settries(tries+1);
         router.push({
           pathname: "/orders/returns/failed",
-          params: {object: JSON.stringify(data)}
-        })
+          params: { object: JSON.stringify(data) },
+        });
       }
     } catch (error) {
       console.error("Error submitting return:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,11 +108,25 @@ const ConfirmPage = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+        <TouchableOpacity
+          style={styles.submitBtn}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
           <Ionicons name="checkmark" size={20} color="#fff" />
           <Text style={styles.submitBtnText}>Submit Return Request</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Fullscreen Loader Modal */}
+      <Modal transparent={true} visible={loading} animationType="fade">
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loaderBox}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.loadingText}>Submitting your return...</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -143,6 +165,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: 14,
+    alignItems: "center",
   },
   submitBtn: {
     flexDirection: "row",
@@ -151,11 +174,32 @@ const styles = StyleSheet.create({
     backgroundColor: "#0071ce",
     paddingVertical: 14,
     borderRadius: 8,
+    width: "100%",
   },
   submitBtnText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+
+  // Loader styles
+  loadingOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loaderBox: {
+    backgroundColor: "#0071ce",
+    padding: 24,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });

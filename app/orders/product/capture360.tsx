@@ -3,7 +3,6 @@ import {
   View,
   TouchableOpacity,
   Text,
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -15,8 +14,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useReturnImagesStore } from "@/store/returnImageStore";
 import { useNavigation } from "expo-router";
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
 import compressImage from "@/store/functions";
 
 export default function VideoRecorder() {
@@ -25,32 +22,36 @@ export default function VideoRecorder() {
   const [recording, setRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
-  const [base64Array, setBase64Array] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
-  const { ORDER_ID, PRODUCT_ID, TAG_PHOTO_URI, reason, retried, retriedSteps } = useLocalSearchParams();
+  const [showPopup, setShowPopup] = useState(false); // 🔥 Popup state
+
+  const {
+    ORDER_ID,
+    PRODUCT_ID,
+    TAG_PHOTO_URI,
+    reason,
+    retried,
+    retriedSteps,
+  } = useLocalSearchParams();
   const navigation = useNavigation();
-  const { setPhotos360, photos360, setphotoURI, photoURI } = useReturnImagesStore();
+  const { setPhotos360, photoURI, setphotoURI } = useReturnImagesStore();
 
   useEffect(() => {
     navigation.setOptions({
       title: "Take a video",
-      headerStyle: {
-        backgroundColor: "#0071ce",
-      },
+      headerStyle: { backgroundColor: "#0071ce" },
       headerTintColor: "#fff",
     });
   }, []);
 
   const generateThumbnails = async (videoUri: string) => {
     if (!videoUri) return;
-    const intervals = [2000,4000,6000,8000];
+    const intervals = [2000, 4000, 6000, 8000];
     const generated: string[] = [];
 
-    setGenerating(true); // Start loader
-    useReturnImagesStore.setState({
-      photos360: [],
-      photoURI: [],
-    });
+    setGenerating(true);
+    useReturnImagesStore.setState({ photos360: [], photoURI: [] });
+
     try {
       for (const time of intervals) {
         const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
@@ -63,30 +64,20 @@ export default function VideoRecorder() {
           setGenerating(false);
           return;
         }
-    //     const fileUri = FileSystem.documentDirectory + 'image_base64.txt';
-    // await FileSystem.writeAsStringAsync(fileUri, uri, {
-    //   encoding: FileSystem.EncodingType.UTF8,
-    // });
-    // console.log("photos 360: Base64 written to:", fileUri);
-
-    
-    // if (await Sharing.isAvailableAsync()) {
-    //   await Sharing.shareAsync(fileUri);
-    // } else {
-    //   alert("Sharing is not available on this device");
-    // }
         useReturnImagesStore.setState((state) => ({
-          four_photos: [...state.four_photos.slice(-3), base64_gen_string]
+          four_photos: [...state.four_photos.slice(-3), base64_gen_string],
         }));
       }
-      // console.log("Photos360 length (getState):", useReturnImagesStore.getState().four_photos);
       setThumbnails(generated);
       setphotoURI([...photoURI, ...generated]);
-      Alert.alert("✅ Thumbnails generated!");
+
+      // ✅ Show popup
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 2000);
     } catch (e) {
       console.warn("Thumbnail generation failed:", e);
     } finally {
-      setGenerating(false); // Always stop loader
+      setGenerating(false);
     }
   };
 
@@ -95,13 +86,11 @@ export default function VideoRecorder() {
       setRecording(true);
       try {
         const video = await cameraRef.current.recordAsync();
-        if (!video) {
-          console.log("No video found");
-          return;
+        if (video?.uri) {
+          setVideoUri(video.uri);
+          setRecording(false);
+          generateThumbnails(video.uri);
         }
-        setVideoUri(video.uri);
-        setRecording(false);
-        generateThumbnails(video.uri);
       } catch (error) {
         console.log("Error in recording:", error);
         setRecording(false);
@@ -109,7 +98,7 @@ export default function VideoRecorder() {
     }
   };
 
-  const stopRecording = async () => {
+  const stopRecording = () => {
     if (cameraRef.current && recording) {
       cameraRef.current.stopRecording();
     }
@@ -122,65 +111,43 @@ export default function VideoRecorder() {
   };
 
   const handleContinue = () => {
-    setPhotos360(base64Array);
-    if(retried==='false' || JSON.parse(retriedSteps as string).length === 0){
+    if (retried === "false" || JSON.parse(retriedSteps as string).length === 0) {
       router.push({
         pathname: "/orders/product/captureAccessories",
-        params: {
-          ORDER_ID,
-          PRODUCT_ID,
-          retried: 'false',
-          retriedSteps
-        },
+        params: { ORDER_ID, PRODUCT_ID, retried: "false", retriedSteps },
       });
     } else {
-      if(JSON.parse(retriedSteps as string).length===1){
+      const steps = JSON.parse(retriedSteps as string);
+      if (steps.length === 1) {
         router.push({
           pathname: "/orders/product/confirmPage",
-          params: {
-            ORDER_ID,
-            PRODUCT_ID,
-            retried: 'false',
-            retriedSteps
-          },
+          params: { ORDER_ID, PRODUCT_ID, retried: "false", retriedSteps },
         });
-      } else if(JSON.parse(retriedSteps as string).length===2) {
-        if (retriedSteps[1]==="contents_verification"){
-          router.push({
-            pathname: "/orders/product/captureAccessories",
-            params: {
-              ORDER_ID,
-              PRODUCT_ID,
-              retried: 'false',
-              retriedSteps
-            },
-          });
-        } else {
-          router.push({
-            pathname: "/orders/product/confirmPage",
-            params: {
-              ORDER_ID,
-              PRODUCT_ID,
-              retried: 'false', 
-              retriedSteps
-            },
-          });
-        }
-      } else {
+      } else if (steps.length === 2 && steps[1] === "contents_verification") {
         router.push({
           pathname: "/orders/product/captureAccessories",
-          params: {
-            ORDER_ID,
-            PRODUCT_ID,
-            retried: 'false', retriedSteps
-          },
+          params: { ORDER_ID, PRODUCT_ID, retried: "false", retriedSteps },
+        });
+      } else {
+        router.push({
+          pathname: "/orders/product/confirmPage",
+          params: { ORDER_ID, PRODUCT_ID, retried: "false", retriedSteps },
         });
       }
     }
-  }
+  };
 
   return (
-    <View style={{ flex: 1, backgroundColor: videoUri ? "#fff" : "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {showPopup && (
+        <View style={styles.popupContainer}>
+          <View style={styles.popupBox}>
+            <Ionicons name="checkmark-circle" size={28} color="#28a745" />
+            <Text style={styles.popupText}>Thumbnails Generated!</Text>
+          </View>
+        </View>
+      )}
+
       {!videoUri ? (
         <>
           <CameraView
@@ -236,10 +203,7 @@ export default function VideoRecorder() {
             <Ionicons name="refresh" size={18} color="#0071ce" />
             <Text style={styles.againBtnText}>Retake Video</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.submitBtn}
-            onPress={handleContinue}
-          >
+          <TouchableOpacity style={styles.submitBtn} onPress={handleContinue}>
             <Ionicons name="checkmark" size={18} color="#fff" />
             <Text style={styles.submitBtnText}>Submit</Text>
           </TouchableOpacity>
@@ -342,5 +306,34 @@ const styles = StyleSheet.create({
     color: "blue",
     fontSize: 16,
     marginTop: 10,
+  },
+  popupContainer: {
+    position: "absolute",
+    top: 80,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  popupBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#e6f9ec",
+    borderColor: "#28a745",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  popupText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#28a745",
+    fontWeight: "600",
   },
 });

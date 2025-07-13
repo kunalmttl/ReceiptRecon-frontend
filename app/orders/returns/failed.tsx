@@ -102,20 +102,15 @@ const retakeRouteMapping = {
 
 type VerificationCategory = keyof typeof retakeRouteMapping;
 
-const failedVerifications: {
-  category: VerificationCategory;
-  reason: string;
-  images: (string | undefined)[];
-}[] = [];
-
 const Failed = () => {
   const navigation = useNavigation();
   const { object } = useLocalSearchParams();
-  const { photoURI = [], tries } = useReturnImagesStore();
-  // const tries = 3;
+  const { photoURI = [] } = useReturnImagesStore();
+
   const verificationResult = object ? JSON.parse(object as string) : null;
 
   useEffect(() => {
+    console.log(photoURI);
     navigation.setOptions({
       title: "Verification Failed",
       headerStyle: {
@@ -146,7 +141,7 @@ const Failed = () => {
   };
 
   const failedVerifications: {
-    category: string;
+    category: VerificationCategory;
     reason: string;
     images: (string | undefined)[];
   }[] = [];
@@ -155,7 +150,7 @@ const Failed = () => {
     for (const [key, valueRaw] of Object.entries(verificationResult.details)) {
       const value = valueRaw as { passed: boolean; reason: string };
       if (value.passed === false) {
-        const indexes = imageMapping[key as VerificationCategory]; // Also safe here
+        const indexes = imageMapping[key as VerificationCategory];
         const images = indexes.map((i) => photoURI[i]);
         failedVerifications.push({
           category: key as VerificationCategory,
@@ -169,69 +164,45 @@ const Failed = () => {
   const handleGoBack = () => {
     router.dismissAll();
   };
-  const retriedSteps = failedVerifications.map((f) => f.category);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.icon}>⚠️</Text>
       <Text style={styles.title}>Verification Unsuccessful</Text>
 
-      {tries >= 3 ? (
-        <>
-          <Text style={styles.message}>
-            You have reached the maximum number of verification attempts. To
-            complete your return, please visit your nearest store with your
-            product and receipt.
-          </Text>
-        </>
-      ) : (
-        <>
-          {failedVerifications.map((fail, idx) => (
-            <View key={idx} style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {getCategoryTitle(fail.category)}
-              </Text>
-              <Text style={styles.reason}>{fail.reason}</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.imageScroll}
-              >
-                {fail.images.map((img, i) =>
-                  img ? (
-                    <Image
-                      key={i}
-                      source={{ uri: `data:image/jpeg;base64,${img}` }}
-                      style={styles.imageLarge}
-                    />
-                  ) : (
-                    <View key={i} style={styles.placeholderLarge}>
-                      <Text style={styles.placeholderText}>No Image</Text>
-                    </View>
-                  )
-                )}
-              </ScrollView>
-              <View style={{ alignItems: "center", marginTop: 12 }}>
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: (retakeRouteMapping as any)[fail.category],
-                      params: {retried: 'true', retriedSteps: JSON.stringify(retriedSteps)}
-                    })
-                  }
-                  style={styles.retryButton}
-                >
-                  <Text style={styles.retryButtonText}>Retake</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+      <>
+        {failedVerifications.map((fail, idx) => (
+          <View key={idx} style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {getCategoryTitle(fail.category)}
+            </Text>
+            <Text style={styles.reason}>{fail.reason}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.imageScroll}
+            >
+              {fail.images.map((img, i) =>
+                img ? (
+                  <Image
+                    key={i}
+                    source={{ uri: `${img}` }}
+                    style={styles.imageLarge}
+                  />
+                ) : (
+                  <View key={i} style={styles.placeholderLarge}>
+                    <Text style={styles.placeholderText}>No Image</Text>
+                  </View>
+                )
+              )}
+            </ScrollView>
+          </View>
+        ))}
 
-          <Text style={styles.message}>
-            To complete your return, please visit your nearest store with your
-            product and receipt if verification is unsuccessful again.
-          </Text>
-        </>
-      )}
+        <Text style={styles.message}>
+          Verification failed, visit your nearest store with your product and receipt.
+        </Text>
+      </>
 
       <TouchableOpacity onPress={handleGoBack} style={styles.button}>
         <Text style={styles.buttonText}>Back to My Orders</Text>
@@ -243,17 +214,6 @@ const Failed = () => {
 export default Failed;
 
 const styles = StyleSheet.create({
-  retryButton: {
-    marginTop: 12,
-    backgroundColor: "#0071ce",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  retryButtonText: {
-    color: "#fff",
-    fontSize: 15,
-  },
   container: {
     paddingHorizontal: 16,
     paddingVertical: 24,
@@ -290,25 +250,24 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 8,
   },
-  imagesContainer: {
+  imageScroll: {
+    marginTop: 8,
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignSelf: "center",
   },
-  image: {
-    width: 80,
-    height: 80,
-    borderRadius: 4,
-    marginRight: 8,
-    marginBottom: 8,
+  imageLarge: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    marginRight: 16,
     borderWidth: 1,
     borderColor: "#ccc",
   },
-  placeholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 4,
-    marginRight: 8,
-    marginBottom: 8,
+  placeholderLarge: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    marginRight: 16,
     borderWidth: 1,
     borderColor: "#ccc",
     justifyContent: "center",
@@ -335,29 +294,5 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
-  },
-  imageScroll: {
-    marginTop: 8,
-    flexDirection: "row",
-    alignSelf: "center",
-  },
-  imageLarge: {
-    width: 200, // was 140
-    height: 200, // was 140
-    borderRadius: 12,
-    marginRight: 16,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  placeholderLarge: {
-    width: 200,
-    height: 200,
-    borderRadius: 12,
-    marginRight: 16,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
   },
 });
