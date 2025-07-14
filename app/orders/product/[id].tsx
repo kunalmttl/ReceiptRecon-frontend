@@ -132,30 +132,6 @@ export default function ProductPage() {
 
       {returnStatus === "NONE" && isWithinReturnWindow && qr_string === "" && (
         <>
-          <View style={{ marginTop: 24 }}>
-            <Text style={{ fontWeight: "600", marginBottom: 8 }}>
-              📸 Example Product Shots:
-            </Text>
-            <FlatList
-              data={exampleImages}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 12 }}
-              renderItem={({ item }) => (
-                <Image
-                  source={{ uri: item.uri }}
-                  style={{
-                    width: 200,
-                    height: 200,
-                    borderRadius: 8,
-                    backgroundColor: "#eee",
-                  }}
-                />
-              )}
-            />
-          </View>
-
           <View style={styles.returnBtn}>
             <TouchableOpacity
               style={{

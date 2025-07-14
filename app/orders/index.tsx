@@ -85,12 +85,7 @@ export default function OrdersScreen() {
               return (
                 <Pressable
                   key={item._id}
-                  // onPress={() =>
-                  //   router.push({
-                  //     pathname: "/orders/product/[id]",
-                  //     params: { id: item._id, item: JSON.stringify(item) },
-                  //   })
-                  // }
+                  onPress={()=>handleClick(order)}
                   style={({ pressed }) => [
                     styles.itemCard,
                     pressed && { opacity: 0.95 },
