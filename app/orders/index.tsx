@@ -72,19 +72,19 @@ export default function OrdersScreen() {
         contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
         data={orders}
-        keyExtractor={(order) => order._id}
+        keyExtractor={(order) => order.id}
         renderItem={({ item: order }) => (
           <Pressable style={styles.orderCard} onPress={()=>handleClick(order)}>
             <Text style={styles.orderDate}>
-              Order Date: {new Date(order.purchaseDate).toDateString()}
+              Order Date: {new Date(order.purchase_date).toDateString()}
             </Text>
-            {order.purchasedItems.map((item: any) => {
-              const product = item.product;
-              const returnable = isReturnable(order.purchaseDate);
-              const returnStatus = item.returnInfo?.status ?? "NONE";
+            {order.order_items.map((item: any) => {
+              const product = item.products;
+              const returnable = isReturnable(order.purchase_date);
+              const returnStatus = item.return_status ?? "NONE";
               return (
                 <Pressable
-                  key={item._id}
+                  key={item.id}
                   onPress={()=>handleClick(order)}
                   style={({ pressed }) => [
                     styles.itemCard,
@@ -93,9 +93,9 @@ export default function OrdersScreen() {
                 >
                   <Image
                     source={{
-                      uri: product.imageUrl.startsWith("http")
-                        ? product.imageUrl
-                        : `https://receiptrecon-backendnode.onrender.com${product.imageUrl}`,
+                      uri: product.image_url.startsWith("http")
+                        ? product.image_url
+                        : `${process.env.EXPO_PUBLIC_BACKEND_URL}${product.image_url}`,
                     }}
                     style={styles.productImage}
                   />

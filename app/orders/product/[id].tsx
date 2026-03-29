@@ -39,7 +39,7 @@ export default function ProductPage() {
   const [qr_string, setqr_string] = useState("");
 
   const get_qr_if_exist = async () => {
-    const qr = await getQRString(JSON.parse(item as string)._id);
+    const qr = await getQRString(JSON.parse(item as string).id);
     // console.log("qr: ", qr);
     if (!qr) {
       console.log("qr exists but is null.");
@@ -64,7 +64,7 @@ export default function ProductPage() {
 
       navigation.setOptions({
         headerShown: true,
-        title: parsedItem.product.name ?? "Product Detail",
+        title: parsedItem.products.name ?? "Product Detail",
       });
     } catch (err) {
       console.error("Failed to parse item param:", err);
@@ -79,11 +79,11 @@ export default function ProductPage() {
     );
   }
 
-  const purchaseDate = new Date(productItem.purchaseDate);
+  const purchaseDate = new Date(productItem.purchase_date);
   const isWithinReturnWindow =
     new Date().getTime() - purchaseDate.getTime() <= 90 * 24 * 60 * 60 * 1000;
 
-  const returnStatus = productItem.returnInfo?.status;
+  const returnStatus = productItem.return_status;
 
   return (
     <ScrollView
@@ -92,13 +92,16 @@ export default function ProductPage() {
       showsVerticalScrollIndicator={false}
     >
       <Image
-        source={{ uri: productItem.product.imageUrl }}
+        source={{ uri: productItem.products.image_url.startsWith("http") 
+          ? productItem.products.image_url 
+          : `${process.env.EXPO_PUBLIC_BACKEND_URL}${productItem.products.image_url}` 
+        }}
         style={styles.productImage}
         resizeMode="contain"
       />
 
-      <Text style={styles.productName}>{productItem.product.name}</Text>
-      <Text style={styles.price}>₹{productItem.priceAtPurchase}</Text>
+      <Text style={styles.productName}>{productItem.products.name}</Text>
+      <Text style={styles.price}>₹{productItem.price_at_purchase}</Text>
 
       <View style={styles.meta}>
         <Text style={styles.metaLabel}>Purchased on:</Text>
@@ -145,7 +148,7 @@ export default function ProductPage() {
                 // Implement navigation to return capture page
                 router.push({
                   pathname: "./returnReason",
-                  params: { item: item, ORDER_ID: productItem.ORDER_ID },
+                  params: { item: item, ORDER_ID: productItem.order_id },
                 });
               }}
             >

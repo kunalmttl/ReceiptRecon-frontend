@@ -80,7 +80,11 @@ const ConfirmPage = () => {
       } else {
         router.push({
           pathname: "/orders/returns/failed",
-          params: { object: JSON.stringify(data) },
+          params: { 
+            object: JSON.stringify(data),
+            ORDER_ID,
+            PRODUCT_ID
+          },
         });
       }
     } catch (error) {

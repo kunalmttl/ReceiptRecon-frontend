@@ -48,7 +48,7 @@ export default function ReturnReasonScreen() {
       pathname: "./captureTag",
       params: {
         ORDER_ID,
-        PRODUCT_ID: parsedItem._id,
+        PRODUCT_ID: parsedItem.id,
         retried: 'false'
       },
     });

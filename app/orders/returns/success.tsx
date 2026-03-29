@@ -33,11 +33,9 @@ export default function SuccessScreen() {
         <QRCode value={qr_string as string} size={220} />
       </View>
 
-      <Text style={styles.payload}>Payload: {qr_string}</Text>
-
-        <TouchableOpacity style={styles.button} onPress={handleGoBack}>
-          <Text style={styles.buttonText}>Back to My Orders</Text>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleGoBack}>
+        <Text style={styles.buttonText}>Back to My Orders</Text>
+      </TouchableOpacity>
     </View>
   );
 }
